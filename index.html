@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LockedIn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>:root{--ink:#edf4f0;--muted:#9eafa6;--line:#2c4239;--surface:#14211c;--soft:#20372d;--sage:#5e8874;--deep:#7ad5a8;--gold:#efbf62;--coral:#f18a73}body{background:#09120e}.overview{background:#183328}.calendar-card,.events-panel,.job-card,dialog{background:var(--surface)}input,select,textarea{background:#0d1813;border-color:#385446;color:var(--ink)}.status-badge{background:#203e30;color:#a5e7c1}.progress-track{background:#263b31}.calendar-day.outside{background:#101b16}.calendar-event{background:#493619;color:#ffd98f}.detail-dialog{width:min(1080px,calc(100% - 28px));max-height:92vh;overflow:auto}.detail-save{border-top:1px solid #2c4239;margin-top:28px;padding-top:18px;display:flex;justify-content:space-between;align-items:center;gap:16px}.description-section .secondary-button{margin-top:10px}.step-time{margin-top:8px}</style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Personal job search workspace</p>
+          <h1>LockedIn</h1>
+        </div>
+        <button class="primary-button" id="add-job-button">+ Add opportunity</button>
+      </header>
+
+      <section class="overview" aria-label="Job search overview">
+        <div class="overview-copy">
+          <p class="eyebrow">Today’s focus</p>
+          <h2 id="focus-message">Add your first opportunity to get started.</h2>
+          <p id="focus-detail">Your opportunities, milestones, and interview dates stay in this browser.</p>
+        </div>
+        <div class="stat-grid">
+          <div class="stat"><span id="job-count">0</span><small>opportunities</small></div>
+          <div class="stat"><span id="task-count">0</span><small>open steps</small></div>
+          <div class="stat"><span id="event-count">0</span><small>upcoming events</small></div>
+        </div>
+      </section>
+
+      <nav class="tabs" aria-label="Views">
+        <button class="tab active" data-view="opportunities">Opportunities</button>
+        <button class="tab" data-view="calendar">Calendar</button>
+      </nav>
+
+      <section id="opportunities-view" class="view active">
+        <div class="filter-row">
+          <label class="search-field">Search opportunities<input id="search-input" type="search" placeholder="Company or position" /></label>
+          <label class="select-field">Status<select id="status-filter"><option value="all">All statuses</option><option>Saved</option><option>Applied</option><option>Interviewing</option><option>Offer</option><option>Rejected</option><option>Withdrawn</option></select></label>
+        </div>
+        <div id="job-list" class="job-grid"></div>
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon">↗</div>
+          <h2>Your search starts here.</h2>
+          <p>Add a job or internship, then use its checklist to keep the application moving.</p>
+          <button class="primary-button" id="empty-add-button">Add opportunity</button>
+        </div>
+      </section>
+
+      <section id="calendar-view" class="view">
+        <div class="calendar-header">
+          <div><p class="eyebrow">Important dates</p><h2>Calendar</h2></div>
+          <div class="month-controls"><button id="previous-month" aria-label="Previous month">←</button><strong id="month-label"></strong><button id="next-month" aria-label="Next month">→</button></div>
+        </div>
+        <div class="calendar-layout">
+          <div class="calendar-card"><div class="weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="calendar-grid" class="calendar-grid"></div></div>
+          <aside class="events-panel"><h3>Upcoming</h3><div id="event-list"></div></aside>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="job-dialog">
+      <form id="job-form" method="dialog">
+        <div class="modal-header"><div><p class="eyebrow" id="form-kicker">New opportunity</p><h2 id="form-title">Add opportunity</h2></div><button class="close-button" type="button" data-close-dialog aria-label="Close">×</button></div>
+        <input type="hidden" id="job-id" />
+        <div class="form-grid">
+          <label>Company<input id="company" required placeholder="e.g., Patagonia" /></label>
+          <label>Position<input id="position" required placeholder="e.g., Business Analyst Intern" /></label>
+          <label>Status<select id="status"><option>Saved</option><option>Applied</option><option>Interviewing</option><option>Offer</option><option>Rejected</option><option>Withdrawn</option></select></label>
+          <label>Location / work arrangement<input id="location" placeholder="e.g., Remote · Portland, OR" /></label>
+          <label>Posting link<input id="posting-link" type="url" placeholder="https://" /></label>
+          <label>Application deadline<input id="deadline" type="date" /></label>
+          <label class="full-width">Notes<textarea id="notes" rows="3" placeholder="What makes this role interesting?"></textarea></label>
+        </div>
+        <div class="form-actions"><button type="button" class="secondary-button" data-close-dialog>Cancel</button><button class="primary-button" value="default">Save opportunity</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="detail-dialog" class="detail-dialog">
+      <div class="detail-inner">
+        <div class="modal-header"><div><p class="eyebrow" id="detail-company"></p><h2 id="detail-position"></h2><div id="detail-meta" class="detail-meta"></div></div><button class="close-button" type="button" data-close-detail aria-label="Close">×</button></div>
+        <div class="detail-actions"><button class="secondary-button" id="edit-job-button">Edit details</button><button class="danger-link" id="delete-job-button">Delete</button></div>
+        <div class="detail-progress"><div><strong id="detail-progress-label"></strong><span id="detail-progress-text"></span></div><div class="progress-track"><span id="detail-progress-bar"></span></div></div>
+        <div class="detail-columns">
+          <section class="checklist-section"><div class="section-heading"><div><p class="eyebrow">From your search guide</p><h3>Application checklist</h3></div></div><div id="step-list" class="step-list"></div></section>
+          <section class="description-section"><p class="eyebrow">Role research</p><h3>Job description keywords</h3><p class="hint">Save the posting link for reference, then paste the job description to identify its frequently used terms. This summary runs entirely in your browser.</p><label>Job-posting link<input id="detail-posting-link" type="url" placeholder="https://" /></label><button id="analyze-link" class="secondary-button">Save link</button><textarea id="job-description" rows="7" placeholder="Paste the job description here…"></textarea><button id="analyze-description" class="secondary-button">Summarize keywords</button><div id="keyword-summary" class="keyword-summary"></div></section>
+        </div>
+        <div class="detail-save"><span id="save-message" class="hint"></span><button id="save-detail-button" class="primary-button">Save changes</button></div>
+      </div>
+    </dialog>
+    <script src="app.js"></script>
+    <script>
+      document.getElementById('analyze-link').onclick = () => {
+        const job = getJob();
+        job.postingLink = document.getElementById('detail-posting-link').value.trim();
+        saveStore();
+        document.getElementById('keyword-summary').innerHTML = '<p>Link saved. Paste the job description below to summarize its keywords.</p>';
+      };
+    </script>
+  </body>
+</html>
